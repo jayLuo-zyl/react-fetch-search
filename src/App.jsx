@@ -1,55 +1,74 @@
 import React, { Component } from 'react';
 import './App.css';
-import InfoTable from './components/InfoTable';
+import BillTable from './components/BillTable';
 
 class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            text: "Search...",
-            rawData: [],
+            text: "",
+            billsData: [],
+            searchedBill: [],
+            searchedBillRealTime: []
         }
     };
 
     // fetch data from provided url endpoint
-    fetchData = () => {
-        // console.log("It's going to fetch Data from 'https://pure-wave-91339.herokuapp.com/sample-data' ");
+    billsApiInitFetch = async () => {
         const url = 'https://pure-wave-91339.herokuapp.com/sample-data';
-        fetch(url,
+        const res = await fetch(url,
             {
                 method: "GET",
                 headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
             }
-        ).then(res => {
-            // console.log(res);  // first level of fetch promise response
-            // console.log(`\nResponse: ${res.status}, ${res.statusText}, ${res.url}`);
-            return res.json();
-        }).then((data) => {  // second level of fetch promise response
-            // console.log('fetch res.JSON() in array:', data);
-            let newArr = []
-            data.forEach((el) => {
-                let newObj = Object.keys(el).reduce((obj, key) => {
-                    let newKey = key.split(' ').join('')
-                    obj[newKey] = el[key];
-                    return obj;
-                }, {});
-                newArr.push(newObj);
-            });
-            this.setState({ rawData: newArr });
-        });
+        );
+        console.log('res Data', res)
+        const billsData = await res.json()
+        this.setState({ billsData });
     };
-    // Search Text 
-    searchText = (event)=>{
-        this.setState({ text: event.target.value })
-        console.log(this.state.text)
+
+    componentDidMount() {
+        this.billsApiInitFetch();
     }
 
+    // Search Text and real-time return potential bills
+    searchText = (event) => {
+        this.setState({ text: event.target.value })
+        console.log(this.state.text)
+        const typingText = event.target.value.toUpperCase();
+        const realTimeFilteredBills = this.state.billsData.filter((bill) => {
+            const targetText = bill.measureNumber.slice(0, 7).toUpperCase();
+            return bill ? targetText.includes(typingText) : null;
+        });
+        if (realTimeFilteredBills.length < 25) {
+            console.log(realTimeFilteredBills);
+            this.setState({ searchedBillRealTime: realTimeFilteredBills, searchedBill: []  });
+        } else {
+            this.setState({ searchedBillRealTime: this.state.billsData });
+        }
+    };
+
+    // Search function 
+    filterSearchText = () => {
+        this.state.billsData.filter(bill => {
+            const targetText = bill.measureNumber.slice(0, 7);
+            if (targetText.toUpperCase() === this.state.text.toUpperCase()) {
+                console.log(bill);
+                this.setState({ searchedBill: [bill] });
+            };
+            return null;
+        })
+    };
+
+    // Press enter key to start search
+    pressEnter = (event) => {
+        let code = event.keyCode || event.which;
+        let isEnter = code === 13 ? true : null;
+        if (isEnter) { this.filterSearchText() };
+    };
+
     render() {
-        const title = "Fetch-Search App";
-        const inputStyle = {
-            margin: '10px',
-            padding: '10px'
-        };
+        const title = "App for Oregon State Legislature bills";
         return (
             <div className="wrapper">
                 <div className="App">
@@ -57,16 +76,12 @@ class App extends Component {
                         {title}
                     </h1>
                 </div>
-                <button style={inputStyle} onClick={this.fetchData}>Get Data</button>
-                <input style={inputStyle} type="text" value={this.state.text} onChange={this.searchText} ></input>
-                <InfoTable infos={this.state.rawData} />
+                <input className="inputStyle" placeholder=" Search... " type="text" value={this.state.text} onChange={this.searchText} onKeyPress={this.pressEnter}></input>
+                <BillTable allBills={this.state.billsData} searched={this.state.searchedBill} realTimeSearched={this.state.searchedBillRealTime} />
             </div>
 
         )
     }
-
-
-
 };
 
 export default App;

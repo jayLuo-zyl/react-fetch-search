@@ -16,8 +16,22 @@
     background-color: lightgreen;
   }
 
+  .inputStyle {
+    margin: 10px 0px 10px 0px;
+    font-size: 20px;
+    width: 970px;
+    border: 0px;
+    padding: 5px 0px 5px 0px;
+  }
+
   .info {
     text-align: center;
     background-color: greenyellow;
     margin-bottom: 10px;
+    border-collapse: collapse;;
+  }
+
+  th, td {
+    padding: 0px 5px 0px 5px;
+    border: 1px solid black;
   }
