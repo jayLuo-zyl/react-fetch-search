@@ -1,17 +1,9 @@
 import React from 'react';
 import './../App.css';
 
-const BillTable = ({ allBills, searched, realTimeSearched }) => {
-    // console.log('Data sent to components:', allBills)
+const BillTable = ({  bills }) => {
     // Return default 25 bills from all
-    let bills = [];
-    if (searched.length === 1) { bills = searched }
-    else if ( realTimeSearched.length >= 1 && realTimeSearched.length < 25){
-        bills = realTimeSearched
-    }
-    else if (allBills.length > 25) {
-        bills = allBills.slice(0, 25);
-    }
+    console.log('Sent to component, bills:', bills);
     return (
         <React.Fragment>
             <table className="info">
@@ -40,9 +32,6 @@ const BillTable = ({ allBills, searched, realTimeSearched }) => {
             </table>
         </React.Fragment>
     )
-
 }
-
-
 
 export default BillTable;
