@@ -37,7 +37,7 @@ class App extends Component {
         this.setState({ text: typingText, vetosOrSignedData: [] })
     };
 
-    // Filtered and Display Vetos above 50%
+    // Flag for veto button and changing the state
     displayVetos = () => {
         if (this.state.showVetoIssues) {
             this.setState({ showVetoIssues: false });
@@ -67,7 +67,10 @@ class App extends Component {
             let vetos = this.state.bills.filter((bill) => {
                 return Number(bill.voterSupport) > 50 && bill.signedOrVetoed === "Vetoed" ? bill : null;
             });
-            filteredData = vetos;
+            const sortedVetos = vetos.sort((a,b)=>{
+                return new Date(b.date) - new Date(a.date)
+                });
+            filteredData = sortedVetos;
         };
 
         // Display all bills or none bills conditionaly
