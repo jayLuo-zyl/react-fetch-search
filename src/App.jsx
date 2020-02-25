@@ -7,8 +7,8 @@ class App extends Component {
         super(props);
         this.state = {
             text: "",
-            billsData: [],
-            searchedData: []
+            bills: [],
+            showVetoIssues: false
         }
     };
 
@@ -22,8 +22,8 @@ class App extends Component {
             }
         );
         // console.log('res Data', res)
-        const billsData = await res.json()
-        this.setState({ billsData });
+        const bills = await res.json()
+        this.setState({ bills });
     };
 
     componentDidMount() {
@@ -34,39 +34,65 @@ class App extends Component {
     searchText = (event) => {
         console.log(event.target.value)
         const typingText = event.target.value.toUpperCase();
-        this.setState({ text: typingText })
+        this.setState({ text: typingText, vetosOrSignedData: [] })
     };
 
-    // Press enter key to start search
-    pressEnter = (event) => {
-        let code = event.keyCode || event.which;
-        let isEnter = code === 13 ? true : null;
-        if (isEnter) {};
+    // Filtered and Display Vetos above 50%
+    displayVetos = () => {
+        if (this.state.showVetoIssues) {
+            this.setState({ showVetoIssues: false });
+        } else {
+            this.setState({ showVetoIssues: true });
+        }
     };
+
+    // Press enter key to start doing something
+    // pressEnter = (event) => {
+    //     let code = event.keyCode || event.which;
+    //     let isEnter = code === 13 ? true : null;
+    //     if (isEnter) {};
+    // };
 
     render() {
-        const title = "App for Oregon State bills";
-        let billsData = this.state.billsData;
-        let filteredData = this.state.billsData.filter((bill) => {
+        // const title = "App for Oregon State bills";
+        let bills = this.state.bills;
+        let filteredData = this.state.bills.filter((bill) => {
             const billText = bill.measureNumber.slice(0, 7).toUpperCase();
             return billText.includes(this.state.text) ? bill : null;
         });
-        console.log('filteredData :', filteredData);
+        // console.log('filteredData :', filteredData);
+
+        // Filters the vetos by conditions, assigns data to variable
+        if (this.state.showVetoIssues === true) {
+            let vetos = this.state.bills.filter((bill) => {
+                return Number(bill.voterSupport) > 50 && bill.signedOrVetoed === "Vetoed" ? bill : null;
+            });
+            filteredData = vetos;
+        };
+
+        // Display all bills or none bills conditionaly
         if (filteredData.length === 0 && this.state.text !== "") {
             filteredData = [];
         } else if (filteredData.length === 0) {
-            filteredData = billsData;
+            filteredData = bills;
         }
+        // Flag for Vetos issues
+        let lableForVetoButton = this.state.showVetoIssues ? "All" : "Veto";
 
         return (
             <div className="wrapper">
-                <div className="App">
-                    <h1>
-                        {title}
-                    </h1>
+                <div className="appTitle">
+                    <p>Oregon Bills</p>
                 </div>
-                <input className="inputStyle" placeholder=" Search... " type="text" value={this.state.text} onChange={this.searchText} onKeyPress={this.pressEnter}></input>
-                <BillTable bills={filteredData} />
+                <div className="searchBar" >
+                    <input className="inputStyle" placeholder=" Search... " type="text" value={this.state.text} onChange={this.searchText}></input>
+                </div>
+                <div className="left-box">
+                    <button type="button" className="vetos" onClick={this.displayVetos}>Show {lableForVetoButton} Issue</button>
+                </div>
+                <div className="right-box">
+                    <BillTable bills={filteredData} />
+                </div>
             </div>
 
         )
