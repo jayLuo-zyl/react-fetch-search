@@ -65,11 +65,15 @@ class App extends Component {
         // Filters the vetos by conditions, assigns data to variable
         if (this.state.showVetoIssues === true) {
             let vetos = this.state.bills.filter((bill) => {
-                return Number(bill.voterSupport) > 50 && bill.signedOrVetoed === "Vetoed" ? bill : null;
+                return Number(bill.voterSupport) >= 50 && bill.signedOrVetoed === "Vetoed" ? bill : null;
             });
-            const sortedVetos = vetos.sort((a,b)=>{
+            let sortedVetos = vetos.sort((a, b) => {
                 return new Date(b.date) - new Date(a.date)
-                });
+            });
+            sortedVetos = sortedVetos.filter((veto) => {
+                const billText = veto.measureNumber.slice(0, 7).toUpperCase();
+                return billText.includes(this.state.text) ? veto : null;
+            });
             filteredData = sortedVetos;
         };
 

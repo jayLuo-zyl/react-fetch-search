@@ -2,8 +2,7 @@ import React from 'react';
 import './../App.css';
 
 const BillTable = ({  bills }) => {
-    // Return default 25 bills from all
-    console.log('Sent to component, bills:', bills);
+    // console.log('Sent to component, bills:', bills);
     return (
         <React.Fragment>
             <table className="info">
