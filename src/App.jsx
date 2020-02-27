@@ -46,20 +46,18 @@ class App extends Component {
         }
     };
 
-    // Press enter key to start doing something
-    // pressEnter = (event) => {
-    //     let code = event.keyCode || event.which;
-    //     let isEnter = code === 13 ? true : null;
-    //     if (isEnter) {};
-    // };
-
     render() {
-        // const title = "App for Oregon State bills";
+        // Helper function 
+        const filterBills = (bills) => {
+            return bills.filter((bill) => {
+                const billText = bill.measureNumber.slice(0, 7).toUpperCase();
+                return billText.includes(this.state.text) ? bill : null;
+            });
+        };
+
+        // Filters all bills from search bar input
         let bills = this.state.bills;
-        let filteredData = this.state.bills.filter((bill) => {
-            const billText = bill.measureNumber.slice(0, 7).toUpperCase();
-            return billText.includes(this.state.text) ? bill : null;
-        });
+        let filteredData = filterBills(bills);
         // console.log('filteredData :', filteredData);
 
         // Filters the vetos by conditions, assigns data to variable
@@ -70,11 +68,7 @@ class App extends Component {
             let sortedVetos = vetos.sort((a, b) => {
                 return new Date(b.date) - new Date(a.date)
             });
-            sortedVetos = sortedVetos.filter((veto) => {
-                const billText = veto.measureNumber.slice(0, 7).toUpperCase();
-                return billText.includes(this.state.text) ? veto : null;
-            });
-            filteredData = sortedVetos;
+            filteredData = filterBills(sortedVetos);
         };
 
         // Display all bills or none bills conditionaly
@@ -82,7 +76,8 @@ class App extends Component {
             filteredData = [];
         } else if (filteredData.length === 0) {
             filteredData = bills;
-        }
+        };
+        
         // Flag for Vetos issues
         let lableForVetoButton = this.state.showVetoIssues ? "All" : "Veto";
 
