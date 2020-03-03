@@ -96,7 +96,6 @@ class App extends Component {
                     <BillTable bills={filteredData} />
                 </div>
             </div>
-
         )
     }
 };
