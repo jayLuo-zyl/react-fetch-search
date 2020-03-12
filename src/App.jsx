@@ -1,12 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { Component } from 'react';
 import './App.css';
-import { connect } from 'react-redux';
 import BillTable from './components/BillTable';
-import PropTypes from 'prop-types';
 
-const App = (props) => {
+class App extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            text: "",
+            bills: [],
+            showVetoIssues: false
+        }
+    };
+
     // fetch data from provided url endpoint
-    const billsApiInitFetch = async () => {
+    billsApiInitFetch = async () => {
         const url = 'https://pure-wave-91339.herokuapp.com/sample-data';
         const res = await fetch(url,
             {
@@ -15,86 +22,71 @@ const App = (props) => {
             }
         );
         // console.log('res Data', res)
-        return await res.json();
+        const bills = await res.json()
+        this.setState({ bills });
     };
 
-    // What does useEffect do? By using this Hook, you tell React that your component needs to do something after render.
-    //  React will remember the function you passed (we’ll refer to it as our “effect”), 
-    // and call it later after performing the DOM updates. In this effect, we set the document title, 
-    // but we could also perform data fetching or call some other imperative API.
-    useEffect(() => {
-        props.onApiFetch(billsApiInitFetch);
-    });
+    componentDidMount() {
+        this.billsApiInitFetch();
+    }
 
-    // const someText = "...show content...";
-    // props.displayText(someText);
-
-    // Helper function 
-    const filterBills = (bills) => {
-        return bills.filter((bill) => {
-            const billText = bill.measureNumber.slice(0, 7).toUpperCase();
-            return billText.includes(props.text) ? bill : null;
-        });
+    // Search Text and real-time return potential bills
+    searchText = (event) => {
+        console.log(event.target.value)
+        const typingText = event.target.value.toUpperCase();
+        this.setState({ text: typingText })
     };
 
-    // Filters all bills from search bar input
-    let bills = props.bills;
-    let filteredData = filterBills(bills);
-
-    if (props.showVetoIssues  === true) {
-        let vetos = bills.filter((bill) => {
-            return Number(bill.voterSupport) >= 50 && bill.signedOrVetoed === "Vetoed" ? bill : null;
-        });
-        let sortedVetos = vetos.sort((a, b) => {
-            return new Date(b.date) - new Date(a.date)
-        });
-        filteredData = filterBills(sortedVetos);
+    // Flag for veto button and changing the state
+    displayVetos = () => {
+        this.setState({ showVetoIssues: !this.state.showVetoIssues });
     };
 
-    let lableForVetoButton = props.showVetoIssues ? "All" : "Veto";
+    render() {
+        // Helper function 
+        const filterBills = (bills) => {
+            return bills.filter((bill) => {
+                const billText = bill.measureNumber.slice(0, 7).toUpperCase();
+                return billText.includes(this.state.text) ? bill : null;
+            });
+        };
 
-    return (
-        <div className="wrapper">
-            <div className="appTitle">
-                <p>Oregon Bills</p>
+        // Filters all bills from search bar input
+        let bills = this.state.bills;
+        let filteredData = filterBills(bills);
+        // console.log('filteredData :', filteredData);
+
+        // Filters the vetos by conditions, assigns data to variable
+        if (this.state.showVetoIssues === true) {
+            let vetos = this.state.bills.filter((bill) => {
+                return Number(bill.voterSupport) >= 50 && bill.signedOrVetoed === "Vetoed" ? bill : null;
+            });
+            let sortedVetos = vetos.sort((a, b) => {
+                return new Date(b.date) - new Date(a.date)
+            });
+            filteredData = filterBills(sortedVetos);
+        };
+
+        // Flag for Vetos issues
+        let lableForVetoButton = this.state.showVetoIssues ? "All" : "Veto";
+
+        return (
+            <div className="wrapper">
+                <div className="appTitle">
+                    <p>Oregon Bills</p>
+                </div>
+                <div className="searchBar" >
+                    <input className="inputStyle" placeholder=" Search... " type="text" value={this.state.text} onChange={this.searchText}></input>
+                </div>
+                <div className="left-box">
+                    <button type="button" className="vetos" onClick={this.displayVetos}>Show {lableForVetoButton} Issue</button>
+                </div>
+                <div className="right-box">
+                    <BillTable bills={filteredData} />
+                </div>
             </div>
-            <div className="searchBar" >
-                <input className="inputStyle" placeholder=" Search... " type="text" value={props.text} onChange={props.searchText}></input>
-            </div>
-            <div className="left-box">
-                <button type="button" className="vetos" onClick={props.displayVetos}>Show {lableForVetoButton} Issue</button>
-            </div>
-            <div className="right-box">
-                <BillTable bills={filteredData} />
-            </div>
-        </div>
-    )
+        )
+    }
 };
 
-App.propTypes = {
-    text: PropTypes.string,
-    bills: PropTypes.array,
-    showVetoIssues: PropTypes.bool
-};
-
-const mapStateToProps = (state) => {
-    return {
-        text: state.text,
-        bills: state.bills,
-        showVetoIssues: state.showVetoIssues
-    }
-}
-
-const mapDispatchToProps = (dispatch) => {
-    return {
-        searchText: (event) => dispatch({ type: 'SEARCH_TEXT', data: event.target.value }),
-        displayVetos: () => dispatch({ type: 'DISPLAY_VETOS' }),
-        // displayText: (someText) => dispatch({ type: 'SHOW_TEXT', data: someText }),
-        onApiFetch: async (billsApiInitFetch) => {
-            let bills = await billsApiInitFetch();
-            console.log('Before Bills Dispatch:', bills);
-            dispatch({ type: 'API_FETCH', data: bills })
-        }
-    }
-}
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default App;
