@@ -1,18 +1,59 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+// import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import * as serviceWorker from './serviceWorker';
+import { render } from 'react-dom';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
 
-ReactDOM.render(
-    <>
-        <App />
-    </>,
+// Create a initialState
+const initialState = {
+    text: '',
+    bills: [],
+    showVetoIssues: false
+};
 
+// Create a reducer
+const reducer = (state = initialState, action) => {
+    switch (action.type) {
+        case 'SEARCH_TEXT':
+            const typingText = action.data.toUpperCase();
+            console.log("typingText in action.data: ", typingText);
+            return {
+                ...state,
+                text: typingText
+            };
+
+        case 'API_FETCH':
+            console.log('API_FETCH in action.data: ', action.data);
+            return {
+                ...state,
+                bills: action.data
+            };
+
+        case 'DISPLAY_VETOS':
+            return {
+                ...state,
+                showVetoIssues: !state.showVetoIssues
+            };
+
+        // case 'SHOW_TEXT':
+        //     console.log('SHOW_TEXT in action.data:', action.data);
+        //     break;
+
+        default:
+            return state;
+    }
+}
+
+// Create a store passing in reducer
+const store = createStore(reducer);
+
+// Wrap the App in a Provider passing in store
+render(
+    <Provider store={store}>
+        <App randomProps='whatever' />
+    </Provider>,
     document.getElementById('root')
 );
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
